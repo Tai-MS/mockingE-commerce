@@ -1,0 +1,30 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+<h1>Products: </h1>
+<style>
+    td, th {
+        border: 2px solid black; 
+        padding: 5px;
+    }
+</style>
+<table id="products-container"></table>
+
+<div>
+    <button type="button" id="prev" >Prev</button>
+    <button type="button" id="next">Next</button>
+</div>
+<div id="moreFunc">
+</div>
+<form method="POST" action="/api/sessions/logout" >
+    <button type="submit">Logout</button>
+</form>
+<script>
+    const cart = '{{ cart }}'
+    const rol = '{{ rol }}'; 
+    const userName = '{{ userName }}'
+</script>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/products.js"></script>
