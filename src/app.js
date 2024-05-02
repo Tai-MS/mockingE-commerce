@@ -17,6 +17,7 @@ import productsRouter from './routes/products.router.js'
 import cartsRouter from './routes/carts.router.js'
 import sessionRouter from './routes/session.router.js'
 import viewsRouter from './routes/views.router.js'
+import productMock from './routes/productsMock.route.js'
 
 import chatManager from './controllers/chat.controller.js'
 import productsManager from './persistence/productsData.js'
@@ -61,6 +62,7 @@ app.use('/products', productsRouter)
 app.use('/carts', cartsRouter)
 app.use("/", viewsRouter);
 app.use("/api/sessions", sessionRouter);
+app.use("/mockingproducts", productMock);
 
 //Server
 const httpServer = app.listen(process.env.PORT, () => {
