@@ -4,7 +4,18 @@ import passport from 'passport'
 import ticketController from "../controllers/ticket.controller.js";
 import isAuthenticated from "../middlewares/verifySession.js";
 
+import { devLogger, prodLogger, addLogger } from '../utils/logger.js'
+
+
 const router = express.Router();
+
+router.use(addLogger)
+
+router.get('/loger', (req, res) => {
+  devLogger.debug(`debug!, ${req.method} en ${req.url} - ${new Date().toLocaleDateString()}`)
+  prodLogger.fatal(`fatal!, ${req.method} en ${req.url} - ${new Date().toLocaleDateString()}`)
+  res.send({message: 'Logger'})
+})
 
 router.post('/register', (req, res, next) => {
   userController.createUser(req, res, next)

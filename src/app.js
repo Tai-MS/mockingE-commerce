@@ -102,6 +102,34 @@ socketServer.on('connect', async socket => {
         }
     })
 
+    socket.on('updateProduct', async(pId, fields) => {
+        try {
+            const updatedFields = {
+                title: fields.title,
+                description: fields.description,
+                code: fields.code,
+                price: parseInt(fields.price),
+                status: fields.status,
+                stock: parseInt(fields.stock),
+                category: fields.category,
+                thumbnail: fields.thumbnail,
+            }
+            console.log("fields ",fields);
+            console.log(pId);
+            let result = await productsManager.updateProduct(pId, updatedFields)
+            console.log(result);
+            const products = await productsManager.getProducts()
+            socketServer.emit('productsResponse', { 
+                result: 'success', 
+                payload: products,
+                msg: result
+            })
+            socketServer.emit('response', {status: 'success', message: result})
+        } catch (error) {
+            socketServer.emit('response', {status: 'error', message: error.message} )
+        }
+    })
+
     socket.on('remove', async(pid) => {
         try {
             const response = await productsManager.deleteProduct(pid)

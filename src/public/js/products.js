@@ -12,6 +12,12 @@ const usernameCookie = document.cookie.split(';').map(cookie => cookie.trim());
 const moreFunc = document.querySelector('#moreFunc')
 
 if (rol === 'admin') {
+
+    Swal.fire({
+        icon: "success",
+        title: `Welcome ${userName}, you signed in as admin.`
+    })
+    
     moreFunc.innerHTML = `
     <form id="add-product">
         <h2>Add product</h2>
@@ -62,12 +68,67 @@ if (rol === 'admin') {
         <button type="submit">Send</button>
     </form>
 
+    <form id="edit-product">
+        <h2>Edit product</h2>
+
+        <div class="form-field">
+            <label for="id">ID</label>
+            <input type="text" name="id" id="id" >
+        </div>
+
+        <div class="form-field">
+            <label for="title-update">Title</label>
+            <input type="text" name="title-update" id="title-update" >
+        </div>
+
+        <div class="form-field">
+            <label for="description-update">Description</label>
+            <input type="text" name="description-update" id="description-update" >
+        </div>
+
+        <div class="form-field">
+            <label for="code-update">Code</label>
+            <input type="text" name="code-update" id="code-update" >
+        </div>
+
+        <div class="form-field">
+            <label for="price-update">Price</label>
+            <input type="number" name="price-update" id="price-update" >
+        </div>
+
+        <div class="form-field">
+            <label for="status-update">Select the status:</label>
+            <select id="status-update" name="status-update">
+                <option value="true">true</option>
+                <option value="false">false</option>
+            </select>
+        </div>
+
+        <div class="form-field">
+            <label for="stock-update">Stock</label>
+            <input type="number" name="stock-update" id="stock-update" >
+        </div>
+
+        <div class="form-field">
+            <label for="category-update">Category</label>
+            <input type="text" name="category-update" id="category-update" >
+        </div>
+
+        <div class="form-field">
+        <label for="thumbnail-update">Thumbnail</label>
+        <input type="text" name="thumbnail-update" id="thumbnail-update">
+    </div>
+
+        <button type="submit">Edit product</button>
+
+    </form>
+
     <form id="remove-product">
         <h2>Remove product</h2>
 
         <div class="form-field">
-            <label for="id">Id</label>
-            <input type="text" name="id" id="id" >
+            <label for="id-remove">Id</label>
+            <input type="text" name="id-remove" id="id-remove" >
         </div>
 
         <button type="submit">Send</button>
@@ -93,13 +154,69 @@ if (rol === 'admin') {
         event.target.reset()
     })
     
+    document.querySelector('#edit-product').addEventListener('submit', (event) => {
+        event.preventDefault()
+        const pId = document.getElementById('id').value
+    const updatedFields = {};
+
+    const titleUpdate = document.getElementById('title-update').value;
+    if (titleUpdate.trim() !== '') {
+        updatedFields.title = titleUpdate;
+    }
+
+    const descriptionUpdate = document.getElementById('description-update').value;
+    if (descriptionUpdate.trim() !== '') {
+        updatedFields.description = descriptionUpdate;
+    }
+
+    const codeUpdate = document.getElementById('code-update').value;
+    if (codeUpdate.trim() !== '') {
+        updatedFields.code = codeUpdate;
+    }
+
+    const priceUpdate = document.getElementById('price-update').value;
+    if (priceUpdate.trim() !== '') {
+        updatedFields.price = priceUpdate;
+    }
+
+    const statusUpdate = document.getElementById('status-update').value;
+    if (statusUpdate.trim() !== '') {
+        updatedFields.status = statusUpdate;
+    }
+
+    const stockUpdate = document.getElementById('stock-update').value;
+    if (stockUpdate.trim() !== '') {
+        updatedFields.stock = stockUpdate;
+    }
+
+    const categoryUpdate = document.getElementById('category-update').value;
+    if (categoryUpdate.trim() !== '') {
+        updatedFields.category = categoryUpdate;
+    }
+
+    const thumbnailUpdate = document.getElementById('thumbnail-update').value;
+    if (thumbnailUpdate.trim() !== '') {
+        updatedFields.thumbnail = thumbnailUpdate;
+    }
+        socket.emit('updateProduct', pId, updatedFields);
+        event.target.reset()
+
+    });
+
     document.querySelector('#remove-product').addEventListener('submit', (event) => {
         event.preventDefault()
-        const idToRemove = document.getElementById('id').value
-        socket.emit('remove', idToRemove)
+        const idToRemove = document.getElementById('id-remove')
+        console.log(idToRemove.value);
+        socket.emit('remove', idToRemove.value)
         event.target.reset()
     })
+}else if(userName !== null){
+    Swal.fire({
+        icon: "success",
+        title: `Welcome ${userName}`
+    })
 }
+
 
 if(sort === 'asc'){
     queryParams.sort = 'asc'
@@ -132,17 +249,17 @@ if(!isNaN(limit) && limit > 0 && limit <= 10){
 socket.emit('getProducts', queryParams);
 socket.on('productsResponse', (response) => {
     if (response.result === 'success') {
-        if(rol === "admin"){
-            Swal.fire({
-                icon: "success",
-                title: `Welcome ${userName}, you signed in as admin.`
-            })
-        }else if(userName !== null){
-            Swal.fire({
-                icon: "success",
-                title: `Welcome ${userName}`
-            })
-        }
+        // if(rol === "admin"){
+        //     Swal.fire({
+        //         icon: "success",
+        //         title: `Welcome ${userName}, you signed in as admin.`
+        //     })
+        // }else if(userName !== null){
+        //     Swal.fire({
+        //         icon: "success",
+        //         title: `Welcome ${userName}`
+        //     })
+        // }
         updateTable(response.payload.docs);
         updatePagination(response.payload);
         if (response.payload.page) {

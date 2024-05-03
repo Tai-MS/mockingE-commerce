@@ -6,6 +6,9 @@ import CustomError from "../services/errors/customErrors.js";
 import EErrors from "../services/errors/enums.js";
 import { generateErrorProduct } from '../services/errors/info.js';
 
+import { devLogger, prodLogger, addLogger } from '../utils/logger.js'
+
+
 dotenv.config()
 
 class UserPersistence {
@@ -26,15 +29,19 @@ class UserPersistence {
                 password: createHash(password),
                 role: userRole
             });
+            devLogger.info('INFO: usuario creado')
+            prodLogger.info('INFO: usuario creado')
             return user.save();
         } catch (error) {
             if (error.errors) {
                 const errorMessage = Object.values(error.errors).map(err => err.message).join(', ');
+                prodLogger.fatal(`ERROR creando usuario: ${errorMessage}`)
                 return `Validation error: ${errorMessage}`;
             } else if (error.code === 11000) {
+                prodLogger.error(`ERROR email en uso: ${error.code}`)
                 return true
             } else {
-                console.error(error);
+                prodLogger.fatal(`ERROR creando usuario (internal server): ${error.code}`)
                 return 'Internal server error';
             }
         }
@@ -46,27 +53,36 @@ class UserPersistence {
             const password = userSession;
     
             const user = await userModel.findOne({ email });
-
+            
             if (!user) {
+                devLogger.warning('INFO: usuario no vàlido')
+                prodLogger.warning('INFO: usuario no válido')
               return 'error 1';
             }
             const isPasswordValid = await bcrypt.compare(password, user.password);
 
             if(!isPasswordValid){
+                devLogger.warning('INFO: contraseña no válida')
+                prodLogger.warning('INFO: contraseña no válida')
               return 'error 2'
             }
                 
             if (userCredentials.email === "adminCoder@coder.com" && isPasswordValid) {
                 user.role = 'admin';
                 await user.save();
+                devLogger.info('INFO: Sesión iniciada')
+                prodLogger.info('INFO: Sesión iniciada')
                 return `/products?username=${userCredentials.user.firstName}`;
             } else {
                 user.role = 'user';
                 await user.save();
-                console.log(userCredentials.firstName);
+                devLogger.info('INFO: Sesión iniciada')
+                prodLogger.info('INFO: Sesión iniciada')
                 return `/products?username=${userCredentials.firstName}`;
             }
         } catch (error) {
+            devLogger.error('ERROR: error al iniciar sesión')
+            prodLogger.error('ERROR: error al iniciar sesión')
             return error;
         }
     }
@@ -77,8 +93,6 @@ class UserPersistence {
             const password = userCredentials.password;
     
             const user = await userModel.findOne({ email });
-            console.log(password);
-            console.log(userCredentials.confirmPassword);
             if (!user) {
               return 'error';
             }

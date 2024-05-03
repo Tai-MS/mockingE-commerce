@@ -1,5 +1,9 @@
 import productModel from "../DAO/models/product.model.js"
 import cartsService from "../services/carts.service.js"
+
+import { devLogger, prodLogger, addLogger } from '../utils/logger.js'
+
+
 async function createCart(req, res){
     let response = await cartsService.createCart()
     res.send(response) 
@@ -21,10 +25,8 @@ async function addMultiProducts(req, res){
 }
 
 async function addProductToCart(req, res){
-    console.log('asdasd');
     const product = { _id } = req.body
     const p = await productModel.find({_id: _id})
-    console.log(p);
     if(!product){
         throw new CustomError({
             name: "Error al editar el producto",

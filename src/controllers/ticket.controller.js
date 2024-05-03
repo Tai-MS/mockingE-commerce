@@ -9,12 +9,12 @@ async function verifyStock(req) {
     const cart = await cartsPersistance.getCartsById(cID);
     for (let product of cart.cartProducts) {
         console.log(`Primera condicion: ${product.productId.stock >= product.quantity}`);
-        console.log(`Segunda condicion: ${product.productId.stock < product.quantity && product.productId.stock > 0}`);
+        console.log(`Segunda condicion: ${product.productId.stock > product.quantity && product.productId.stock > 0}`);
         if (product.productId.stock >= product.quantity) {
             const act = product.productId.stock - product.quantity;
             await productsData.updateProduct(product.productId._id.toString(), { stock: act });
             await cartsPersistance.deleteProductOfCart(cID, product.productId._id.toString());
-        }else if(product.productId.stock < product.quantity && product.productId.stock > 0){
+        }else if(product.productId.stock > product.quantity && product.productId.stock > 0){
             await productsData.updateProduct(product.productId._id.toString(), { stock: 0 });
             await cartsPersistance.deleteProductOfCart(cID, product.productId._id.toString(), product.productId.stock);
         } else {
@@ -34,9 +34,15 @@ async function generate(req, res){
     const cartProductsLength = cart.cartProducts.length
     const user = await userPersistence.getUser(cID)
     const prodStock = await verifyStock(req)
-    if(prodStock.length > 0 && cart.cartProducts.length < cartProductsLength ){
+    console.log(`prodStock.length: ${prodStock.length }`);
+    console.log(`cart.cartProducts.length: ${cart.cartProducts.length }`);
+    console.log(`cartProductsLength: ${ cartProductsLength }`);
+    console.log(`primera condicion completa: ${ (prodStock.length > 0) && (cart.cartProducts.length < cartProductsLength) }`);
+    console.log(`primera condicion primera: ${ (prodStock.length > 0) }`);
+    console.log(`primera condicion segunda: ${ (cart.cartProducts.length < cartProductsLength) }`);
+    if((prodStock.length > 0) && (cart.cartProducts.length < cartProductsLength)){
         return res.send(`${await ticketPersistence.generateTicket(user)}. Productos no disponibles:${prodStock}`)
-    }else if(cart.cartProducts.length < cartProductsLength){
+    }else if(cart.cartProducts.length <= cartProductsLength){
         return res.send(`${await ticketPersistence.generateTicket(user)}.`)
 
     }

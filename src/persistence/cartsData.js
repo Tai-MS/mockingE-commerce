@@ -3,6 +3,9 @@ import productModel from '../DAO/models/product.model.js'
 import CustomError from "../services/errors/customErrors.js";
 import EErrors from "../services/errors/enums.js";
 import { generateErrorProduct } from '../services/errors/info.js';
+
+import { devLogger, prodLogger, addLogger } from '../utils/logger.js'
+
 class CartsPersistance {
     static #instance
 
@@ -16,8 +19,10 @@ class CartsPersistance {
     async createCart(){
         try {
             const createElement = await cartModel.create({quantity: 0})
+            devLogger.info(`INFO: registrado nuevo cart`)
             return `Cart created. Cart ID: ${createElement._id}`
         } catch (error) {
+            prodLogger.fatal(`FATAL: no se pudo crear el nuevo cart`)
             return `Error: ${error}`
         }    
     }
@@ -26,11 +31,15 @@ class CartsPersistance {
         try {
             const carts = await cartModel.find()
             if(carts){
+                devLogger.info(`INFO: obteniendo todos los carts`)
                 return carts
             }else{
+                devLogger.error(`ERROR: no se encontraron carts`)
+                prodLogger.error(`ERROR: no se encontraron carts`)
                 return 'There are no carts'
             }
         } catch (error) {
+            prodLogger.fatal(`FATAL: no se pudo obtener los carts`)
             return `Error: ${error}`
         }    
     }
@@ -39,11 +48,15 @@ class CartsPersistance {
         try {
             const cart = await cartModel.findById(cid).populate('cartProducts.productId');
             if(cart){
+                devLogger.info(`INFO: obteniendo el cart`)
                 return cart
             }else{
+                devLogger.error(`ERROR: no se encontró el cart`)
+                prodLogger.error(`ERROR: no se encontró el cart`)
                 return 'Cart not found'
             }
         } catch (error) {
+            prodLogger.fatal(`FATAL: no se pudo obtener el cart`)
             return error
         }        
     }
@@ -52,9 +65,12 @@ class CartsPersistance {
         try {
             const cart = await cartModel.findOne({ _id: cid });
             let notFoundArr = []
-            if (!cart) {
+            if (!cart) { 
+                devLogger.warning(`WARNING: no se encontró el cart`)
+                prodLogger.warning(`WARNING: no se encontró el cart`)
                 return 'Cart not found';
             }
+            devLogger.info(`INFO: obteniendo el cart`)
             const productIds = Object.values(productsArr['products']);
             await Promise.all(productIds.map(async (productId) => {
                 const productExist = await productModel.findById(productId['product']);
@@ -75,8 +91,11 @@ class CartsPersistance {
 
     async addProductToCart(cid, pid, add = 1) {
         try {
-            const p = await productModel.find({_id: pid})
+            // const p = await productModel.find({_id: pid})
+            const product = await productModel.findOne({ _id: pid });
             if(!product){
+                devLogger.warning('WARNING: producto no encontrado')
+                prodLogger.warning('WARNING: producto no encontrado')
                 throw new CustomError({
                     name: "Error al editar el producto",
                     cause: generateErrorProduct({ email, password }),
@@ -86,13 +105,14 @@ class CartsPersistance {
             }
             const cart = await cartModel.findOne({ _id: cid });
             if (!cart) {
+                devLogger.info('WARNING: cart no encontrado')
+                prodLogger.info('WARNING: cart no encontrado')
                 return 'Cart not found';
             }
     
-            const product = await productModel.findOne({ _id: pid });
-            if (!product) {
-                return 'Product not found';
-            }
+            // if (!product) {
+            //     return 'Product not found';
+            // }
            
             const existingProduct = cart.cartProducts.find(info => info.productId.toString() === pid);
             const productPrice = parseInt(product.price)
@@ -105,19 +125,21 @@ class CartsPersistance {
                 });
                 await cartModel.updateOne({_id: cart._id}, {total: total})
                 await cart.save();
+                devLogger.info('INFO: el producto se añadió al carrito')
+                prodLogger.info('INFO: el producto se añadió al carrito')
                 return cart;
             } else {
                 existingProduct.quantity += add;
                 cart.total += productPrice
+                devLogger.info('INFO: se modificó la cantidad en el carrito')
+                prodLogger.info('INFO: se modificó la cantidad en el carrito')
                 await cart.save();
                 return cart;
             }
-    
         } catch (error) {
             return `Error: ${error}`;
         }
     }
-    
 
     async deleteProductOfCart(cid, pid, quantityToDelete = 1) {
         try {
