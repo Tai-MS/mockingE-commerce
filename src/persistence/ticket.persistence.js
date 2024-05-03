@@ -4,7 +4,7 @@ import cartModel from '../DAO/models/cart.model.js'
 import cartsPersistance from "./cartsData.js";
 
 class TicketPersistence {
-    async generateTicket(user) {
+    async generateTicket(user, amount) {
         const now = new Date();
 
         const year = now.getFullYear();
@@ -19,7 +19,6 @@ class TicketPersistence {
         const code = uuidv4(); 
 
         const cart = await cartModel.find({_id: await user.cart})
-        const totalAmount = cart[0].total
         const purchaser = `${user.firstName} ${user.lastName}`
         const purchase_datetime = [date, hour];
 
@@ -27,7 +26,7 @@ class TicketPersistence {
             const newTicket = await ticketModel.create({
                 code: code,
                 purchase_datetime: purchase_datetime,
-                amount: totalAmount,
+                amount: amount,
                 purchaser: purchaser 
             });
             console.log(await cartsPersistance.deleteAllProducts({_id: await user.cart}))
